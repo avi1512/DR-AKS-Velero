@@ -1,0 +1,15 @@
+---
+- name: Install ArgoCD Applications For Velero
+  hosts: localhost
+  gather_facts: false
+  tasks:
+
+    - name: Retrieve Argo Helm Chart repository
+      ansible.builtin.command: helm repo add argo https://argoproj.github.io/argo-helm
+      changed_when: false
+
+    - name: Create ArgoCD Applications from helm chart
+      ansible.builtin.shell: |
+        helm template -n argocd -f ./apps.yaml argo/argocd-apps | \
+        kubectl apply --wait -f -
+      changed_when: false

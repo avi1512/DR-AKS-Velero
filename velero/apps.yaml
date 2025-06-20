@@ -1,0 +1,39 @@
+projects:
+  infra-applications:
+    namespace: argocd
+    description: DevOps infra apps
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+    sourceRepos:
+    - 'https://github.com/avi1512/DR-AKS-Velero.git'
+
+    destinations:
+      - namespace: velero
+        server: https://kubernetes.default.svc
+
+applications:
+  velero:
+    namespace: argocd
+    project: infra-applications
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    source:
+      repoURL: https://github.com/avi1512/DR-AKS-Velero.git
+      targetRevision: main
+      path: ./velero
+      plugin:
+        env:
+          - name: HELM_ARGS
+            value: -f ./values.yaml
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: velero
+    syncPolicy:
+      automated:
+        prune: false
+        selfHeal: false
+      syncOptions:
+      - CreateNamespace=true
