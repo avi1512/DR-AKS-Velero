@@ -22,6 +22,12 @@ resource "azurerm_kubernetes_cluster" "primary" {
   dns_prefix           = "dr-azure-k8s"
   private_cluster_enabled = false
   sku_tier             = "Free"
+
+
+  #Enable OIDC + Workload Identity
+  oidc_issuer_enabled         = true
+  workload_identity_enabled   = true 
+
   
   default_node_pool {
     name                 = "aksnodepool"
