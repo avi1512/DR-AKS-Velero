@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: azure-blob-cleaner
+  namespace: velero
+spec:
+  schedule: "* * * * *"
+  concurrencyPolicy: Forbid                    # ⛔ prevent overlapping jobs
+  startingDeadlineSeconds: 30                  # ⏱️ abort if can't start within 30s
+  successfulJobsHistoryLimit: 1                # ✅ keep only last success
+  failedJobsHistoryLimit: 1                    # ❌ keep only last failure
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            azure.workload.identity/use: "true"
+        spec:
+          serviceAccountName: azure-blob-cleaner-sa
+          restartPolicy: OnFailure
+          containers:
+          - name: cleaner
+            image: mcr.microsoft.com/azure-cli
+            command: ["/bin/bash", "/script/cleanup.sh"]
+            volumeMounts:
+              - name: script
+                mountPath: /script
+            env:
+              - name: AZURE_STORAGE_ACCOUNT
+                value: 
+              - name: AZURE_CONTAINER_NAME
+                value: 
+              - name: AZURE_CLIENT_ID
+                value: 
+          volumes:
+            - name: script
+              configMap:
+                name: blob-cleaner-script
