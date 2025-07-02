@@ -1,0 +1,37 @@
+PVC restoration
+ 
+1. Create disk from full snapshot ( This full snapshot need to take before the activity start's ) ( Azure > Snapshot > create disk ( Disk name must be same name for deleted disk )
+ 
+2. kubectl scale deploy/test-aks-jenkins-dsu --replicas 0 -n ( namespace-name ) == ( Need to de scale the deployment to 0 )
+ 
+3. Edit the PVC and remove below finalizers using kubectl edit pvc ( pvc-name ) -n  ( namespace-name )
+ 
+Plain Text
+finalizers:  - kubernetes.io/pvc-protection
+ 
+4. Delete the pvc using kubectl delete pvc ( pvc-name ) -n  ( namespace-name )
+ 
+5. Delete existing disk in Azure portal
+ 
+6. Create new disk from full snapshot ( step 1 ) with previous exact size of disk
+ 
+7. Need to be sync the out of sync k8s obeject ( PVC and deployment ) in ArgoCD
+ 
+8. When it's first time PVC is pending state with following error
+ 
+Plain Text
+Warning  ProvisioningFailed    6s (x5 over 23s)  disk.csi.az.com_aks-stgakswks-37884062-vmss0001CY_ac0505fa-7078-4410-8e0b-59ad695d9b82  failed to provision volume with StorageClass "managed-csi-premium-retain": rpc error: code = Internal desc = PUT https://management.azure.com/subscriptions/xxxx-xxxx-xxxx-xxx/resourceGroups/test-aks-cluster_westeurope/providers/Microsoft.Compute/disks/test-aks-jenkins-premium-pvc
+--------------------------------------------------------------------------------
+RESPONSE 400: 400 Bad Request
+ERROR CODE: BadRequest
+--------------------------------------------------------------------------------
+{
+  "error": {
+   "code": "BadRequest",
+   "message": "Changing property 'sourceResourceId' is not allowed for existing disk 'test-aks-jenkins-premium-pvc'."
+  }
+}
+ 
+9. kubectl patch pv <pv-name> -p '{"spec":{"claimRef": null}}' ( This patch will clean the old PVC in PV )
+ 
+10. Finally need to delete the PVC and recreated again ( After this will PVC mount previous snapshot of disk into pod ). 
