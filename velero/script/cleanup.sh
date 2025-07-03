@@ -11,7 +11,7 @@ STORAGE_ACCOUNT_NAME="${AZURE_STORAGE_ACCOUNT}"
 CONTAINER_NAME="${AZURE_CONTAINER_NAME}"
 ROOT_PREFIX="kopia/"
 CUTOFF_TIME=$(date -u -d '1 day ago' +%s)
-TARGET_PREFIXES=("_log" "xn" "q")
+TARGET_PREFIXES=("_log" "p" "x" "q" "n")
 
 echo "📦 Scanning: ${STORAGE_ACCOUNT_NAME}/${CONTAINER_NAME}/${ROOT_PREFIX}"
 
